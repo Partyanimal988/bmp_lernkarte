@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>BMP-Datei mit Python erstellen – verständlich & anschaulich</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{
+      --bg:#f7fbff;
+      --panel:#ffffff;
+      --text:#0f172a;
+      --muted:#475569;
+      --brand:#1e3a8a;     /* Blau */
+      --brand2:#0ea5e9;    /* Eisblau */
+      --accent:#14532d;    /* dunkles Grün für positive Kasten */
+      --border:#e2e8f0;
+      --code-bg:#0b1b3a;   /* dunkelblau für Code */
+    }
+
+    /* Layout & Typografie */
+    html, body { margin:0; background:var(--bg); color:var(--text); font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, Helvetica, "Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol"; line-height:1.65; }
+    .container { max-width: 1100px; margin: 0 auto; padding: 32px 20px 80px; }
+
+    h1 { font-weight: 800; letter-spacing: -0.02em; font-size: clamp(28px,4vw,40px); margin: 0 0 8px 0; color: var(--brand); }
+    .subtitle { color: var(--muted); margin: 0 0 28px 0; font-size: clamp(14px,2vw,18px); }
+
+    h2 { font-size: clamp(18px,2.6vw,24px); margin: 0 0 12px 0; letter-spacing: -0.01em; color: var(--brand); }
+    p { margin: 0 0 12px 0; }
+
+    /* Karten */
+    .card{
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      margin: 16px 0;
+      box-shadow: 0 10px 24px rgba(30,58,138,0.05);
+    }
+
+    /* Raster-Layouts */
+    .row { display: grid; grid-template-columns: 1fr; gap: 16px; }
+    @media (min-width: 900px){
+      .row-2 { grid-template-columns: 1fr 1fr; }
+      .row-3 { grid-template-columns: 1.2fr 1fr 1fr; }
+    }
+
+    /* Badges / Hinweise */
+    .badge {
+      display: inline-block; padding: 4px 10px; font-size: 12px;
+      border-radius: 999px; background: #e0f2fe; color: #075985;
+      border: 1px solid #bae6fd; margin-right: 8px;
+    }
+    .info {
+      background: #ecfeff; border-left: 6px solid var(--brand2);
+      padding: 12px 14px; border-radius: 10px; margin: 12px 0 0 0;
+      color:#083344;
+    }
+    .ok {
+      background: #ecfdf5; border-left: 6px solid #10b981;
+      padding: 12px 14px; border-radius: 10px; margin: 12px 0 0 0;
+      color:#064e3b;
+    }
+
+    /* Listen */
+    ul { padding-left: 18px; }
+    li { margin: 6px 0; }
+
+    /* Codeblöcke – niemals Text abschneiden */
+    pre, code, kbd, samp {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+    pre{
+      background: var(--code-bg);
+      border: 1px solid #0f2a5e;
+      color: #e6edf3;
+      padding: 16px;
+      border-radius: 12px;
+      margin: 10px 0 6px;
+      white-space: pre-wrap;      /* Zeilen sinnvoll umbrechen */
+      word-break: normal;         /* keine Wortzerstörung */
+      overflow-wrap: anywhere;    /* lange Strings dürfen soft umbrechen */
+    }
+    .caption { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+    /* Bild-Previews */
+    figure { margin: 0; }
+    figcaption { color: var(--muted); font-size: 13px; margin-top: 8px; }
+    .img { width: 100%; border-radius: 12px; border: 1px solid var(--border); }
+
+    .preview-wrap{ display: grid; gap: 16px; grid-template-columns: 140px 1fr; align-items: center; }
+    .preview {
+      width: 120px; height: 120px; background: #dc2626;  /* kräftiges Rot */
+      border: 2px solid #0f172a; border-radius: 10px;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.15);
+    }
+
+    .download {
+      display:inline-block; padding: 10px 14px; border-radius: 10px;
+      background: var(--brand); color:#fff; text-decoration:none; font-weight:700;
+      border:1px solid #0c2e6c;
+    }
+    .download:hover { background:#1d4ed8; }
+
+    table { width: 100%; border-collapse: collapse; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-top: 8px; }
+    th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 14px; }
+    th { background: #e0e7ff; color: #1e3a8a; }
+    tr:last-child td { border-bottom: none; }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <h1>BMP-Datei mit Python erstellen – Schritt für Schritt</h1>
+    <p class="subtitle">
+      <span class="badge">Python</span>
+      <span class="badge">Pillow (PIL)</span>
+      <span class="badge">BMP (Bitmap)</span>
+      <span class="badge">24-Bit RGB</span>
+    </p>
+
+    <!-- 1) Was ist Python? -->
+    <section class="card">
+      <h2>1) Was ist Python – und wozu brauchen wir es hier?</h2>
+      <p>
+        <strong>Python</strong> ist eine leicht verständliche, weit verbreitete Programmiersprache. Ein
+        <em>Python-Code</em> ist eine Reihe klarer Anweisungen, die von einem sogenannten
+        <em>Interpreter</em> ausgeführt werden. Mit Bibliotheken wie <code>Pillow</code> lässt sich damit
+        <strong>programmatisch ein Bild erzeugen</strong>: Wir definieren, wie groß das Bild ist und welche
+        Farbe jeder Pixel haben soll. Das Ergebnis speichern wir anschließend als Datei.
+      </p>
+      <div class="info">
+        💡 Kurz gesagt: <strong>Python beschreibt den Bildinhalt (Pixelmatrix)</strong>, während
+        <strong>BMP beschreibt, wie diese Pixel als Datei gespeichert werden</strong> (Header + Pixeldaten, meist
+        unkomprimiert und damit verlustfrei).
+      </div>
+    </section>
+
+    <!-- 2) Was ist BMP? -->
+    <section class="card">
+      <h2>2) Was ist BMP – die Verbindung zwischen Code und Datei</h2>
+      <p>
+        <strong>BMP</strong> (Bitmap) ist ein <em>rasterbasiertes</em> Dateiformat von Microsoft. Es speichert Bilder
+        <em>Pixel für Pixel</em>, oft ohne Kompression. Dadurch entstehen große, aber <strong>verlustfreie</strong>
+        Dateien. In 24-Bit-RGB bestehen Farben aus drei Zahlenwerten (Rot, Grün, Blau, jeweils 0–255) und ermöglichen
+        bis zu <strong>16,7&nbsp;Mio. Farben</strong>. Unser Python-Code erzeugt genau so eine Pixelmatrix und schreibt
+        sie als <code>.bmp</code>.
+      </p>
+      <table>
+        <thead><tr><th>Aspekt</th><th>Konsequenz für BMP</th></tr></thead>
+        <tbody>
+          <tr><td>Rastergrafik</td><td>Das Bild ist ein Gitter aus Pixeln (Matrix).</td></tr>
+          <tr><td>24-Bit RGB</td><td>Pro Pixel 3 Byte (R, G, B) → 16,7 Mio. Farben.</td></tr>
+          <tr><td>Kompression</td><td>In der Regel unkomprimiert → große, aber exakte Dateien.</td></tr>
+          <tr><td>Header + Daten</td><td>Header beschreibt Format, Größe, Farbtiefe; danach folgen die Pixeldaten.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 3) Ziel -->
+    <section class="card">
+      <h2>3) Ziel dieses Beispiels</h2>
+      <p>
+        Wir erzeugen in Python ein <strong>100×100</strong> Pixel großes, vollständig <strong>rotes</strong> Bild und
+        speichern es als <code>bild.bmp</code>. So siehst du den Weg von der <em>Code-Anweisung</em> zur fertigen
+        <em>Bitmap-Datei</em>.
+      </p>
+    </section>
+
+    <!-- 4) Python-Code -->
+    <section class="card">
+      <h2>4) Der Python-Code </h2>
+      <pre>
+# =========================================================
+# BMP-Datei mit Python erstellen (mit Pillow)
+# =========================================================
+# 1) Was macht dieser Code?
+#    - Er erzeugt im Arbeitsspeicher ein 100 x 100 Pixel großes Bild
+#      im RGB-Farbmodus und füllt es komplett mit Rot.
+#    - Anschließend speichert er das Bild als "bild.bmp".
+#
+# 2) Warum ist das für BMP relevant?
+#    - BMP speichert eine Pixelmatrix meist unkomprimiert.
+#      Wir liefern diese Pixelmatrix mit Python: Größe + Farbe je Pixel.
+#
+# 3) Voraussetzungen:
+#    - Python installiert
+#    - Bibliothek "Pillow": Installation per   pip install pillow
+
+from PIL import Image  # Pillow: Erzeugen/Speichern von Bildern
+
+# Schritt 1: Neues 100x100-Bild erzeugen
+#  - "RGB": Drei Farbkanäle (Rot, Grün, Blau), je 0–255 → 24-Bit-Farbe
+#  - (100, 100): Breite x Höhe in Pixeln
+#  - color="red": Alle Pixel werden rot gefärbt
+img = Image.new("RGB", (100, 100), color="red")
+
+# Schritt 2: Als BMP speichern
+#  - BMP speichert Pixelwerte direkt (meist unkomprimiert)
+#  - Vorteil: verlustfrei (keine Artefakte)
+#  - Nachteil: größere Dateien als JPEG/PNG
+img.save("bild.bmp")
+      </pre>
+      <p class="caption">Der Code erzeugt eine rote Pixelmatrix und speichert sie verlustfrei als <code>bild.bmp</code>.</p>
+      <div class="ok">
+        ✅ Ergebnis der Ausführung: In deinem Arbeitsordner liegt danach eine Datei <strong>bild.bmp</strong>.
+      </div>
+    </section>
+
+    <!-- 5) FOTOS & VORSCHAU – NEU (ohne externe Dateien) -->
+    <section class="card">
+      <h2>5)  Vorschau </h2>
+      <p>Die folgende Darstellung wird direkt im Browser erzeugt (SVG/Canvas). So umgehen wir alle Pfadprobleme.</p>
+
+      <!-- A) ROTES QUADRAT als SVG -->
+      <figure>
+        <svg class="img" viewBox="0 0 100 100" width="100%" height="auto" xmlns="http://www.w3.org/2000/svg" aria-label="Rotes Quadrat">
+          <rect x="0" y="0" width="100" height="100" fill="#ff0000"/>
+        </svg>
+        <figcaption>Rotes Quadrat – so sieht auch die erzeugte BMP-Datei aus.</figcaption>
+      </figure>
+    </section>
+
+    <!-- 6) Farbvielfalt (24-Bit-RGB) – DEIN REST BLEIBT UNVERÄNDERT -->
+    <section class="card">
+      <h2>6) Bonus: Farbvielfalt in 24-Bit-RGB</h2>
+      <p>So könnte ein einfacher Farbverlauf aussehen, den BMP verlustfrei speichert.</p>
+      <figure>
+        <!-- wir lassen hier die Erklärung stehen; die echte Vorschau ist oben -->
+        <figcaption>Beispielhafter Verlauf. In BMP würden diese Pixelwerte ebenso exakt gespeichert – nur als größere, aber verlustfreie Datei.</figcaption>
+      <!-- B) FARBEVERLAUF als SVG -->
+      <figure style="margin-top:16px">
+        <svg class="img" viewBox="0 0 256 50" width="100%" height="auto" xmlns="http://www.w3.org/2000/svg" aria-label="Farbverlauf 24-Bit-RGB">
+          <defs>
+            <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%"   stop-color="#00ff00"/>
+              <stop offset="50%"  stop-color="#808080"/>
+              <stop offset="100%" stop-color="#ff00aa"/>
+            </linearGradient>
+          </defs>
+          <rect x="0" y="0" width="256" height="50" fill="url(#g)"/>
+        </svg>
+        <figcaption>Farbverlauf in 24-Bit-RGB – BMP speichert dieselben Pixelwerte verlustfrei.</figcaption>
+      </figure>
+
+      <hr style="margin:20px 0; border:none; border-top:1px solid #e2e8f0">
+
+      <h3 style="margin-top:0">Optional: Als PNG generieren &amp; herunterladen </h3>
+      <p>Die folgenden Bilder werden im Browser gezeichnet und als <code>data:png</code> erzeugt. Du kannst sie direkt speichern.</p>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <!-- Canvas: Rotes Quadrat -->
+        <div>
+          <canvas id="cv-red" width="100" height="100" style="border:1px solid #e2e8f0;border-radius:8px"></canvas>
+          <div style="margin-top:8px">
+            <a id="dl-red" class="download" href="#" download="rotes_quadrat.png">PNG herunterladen</a>
+          </div>
+        </div>
+
+        <!-- Canvas: Farbverlauf -->
+        <div>
+          <canvas id="cv-grad" width="256" height="50" style="border:1px solid #e2e8f0;border-radius:8px"></canvas>
+          <div style="margin-top:8px">
+            <a id="dl-grad" class="download" href="#" download="farbverlauf.png">PNG herunterladen</a>
+            <script>
+                // ROTES QUADRAT zeichnen + Download-Link setzen
+                (function(){
+                  const c = document.getElementById('cv-red');
+                  const ctx = c.getContext('2d');
+                  ctx.fillStyle = '#ff0000';
+                  ctx.fillRect(0, 0, c.width, c.height);
+                  document.getElementById('dl-red').href = c.toDataURL('image/png');
+                })();
+        
+                // FARBEVERLAUF zeichnen + Download-Link setzen
+                (function(){
+                  const c = document.getElementById('cv-grad');
+                  const ctx = c.getContext('2d');
+                  const w = c.width, h = c.height;
+                  for (let x = 0; x < w; x++){
+                    const r = x;               // 0..255
+                    const g = 255 - x;         // 255..0
+                    const b = Math.floor(x/2); // 0..127
+                    ctx.fillStyle = `rgb(${r},${g},${b})`;
+                    ctx.fillRect(x, 0, 1, h);
+                  }
+                  document.getElementById('dl-grad').href = c.toDataURL('image/png');
+                })();
+              </script>
+        </div>
+        </div>
+    </figure>
+    </section>
+
+    <!-- 7) Download der erzeugten BMP – dein weiterer Inhalt folgt ... -->
+    <!-- (Rest deiner Seite bleibt wie zuvor) -->
+
+  <!-- 7) Download der erzeugten BMP --> <section class="card"> <h2>7) BMP-Datei herunterladen</h2> <p>Hier kannst du eine beispielhafte <strong>BMP-Datei</strong> (rotes Quadrat) direkt speichern:</p> <p> <a class="download" download="bild.bmp" href="data:image/bmp;base64,Qk2mAAAAAAAAADYAAAAoAAAAZAAAAGQAAAABABgAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC0AAAAAAD//////////8rC//////+f//////8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"> BMP herunterladen </a> </p> <p class="caption">Falls dein Browser den Download blockt, Rechtsklick → „Link speichern unter…“.</p> </section> <!-- 8) Was passiert technisch? --> <section class="card"> <h2>8) Die Technik dahinter </h2> <ul> <li><strong>Python-Schritt:</strong> <code>Image.new("RGB",(100,100),"red")</code> legt im Speicher eine <em>Pixelmatrix</em> an.</li> <li><strong>Speichern als BMP:</strong> <code>img.save("bild.bmp")</code> schreibt einen <em>Header</em> (z. B. „BM“, Breite, Höhe, Farbtiefe) und danach die <em>Pixeldaten</em> (für jeden Pixel: R-, G-, B-Wert).</li> <li><strong>Ergebnis:</strong> eine <em>verlustfreie</em> Datei – jedes Pixel wird exakt so abgelegt, wie es der Code definiert hat.</li> </ul> <div class="ok"> Merksatz: <strong>Code → Pixelmatrix → BMP-Datei.</strong> Python definiert die Inhalte, BMP bewahrt sie exakt auf. </div> </section> <section class="card" </section> <p class="subtitle" style="text-align:center; margin-top: 24px;"> Viel Erfolg beim Ausprobieren! Du kannst die Farbe, Größe oder Inhalte im Code nach Belieben ändern und so eigene BMP-Dateien erzeugen. </p> </main> </body> </html>
